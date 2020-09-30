@@ -595,7 +595,31 @@ TEST(test_lex, lex_identifiers) {
   check_single_token(u8"MixedCaseIsAllowed", u8"MixedCaseIsAllowed");
   check_single_token(u8"ident$with$dollars", u8"ident$with$dollars");
   check_single_token(u8"digits0123456789", u8"digits0123456789");
-  // TODO(strager): Lex identifiers containing \u1234 or \u{1234}.
+}
+
+TEST(test_lex, lex_identifier_with_escape_sequence) {
+  check_single_token(u8"\\u0061", u8"a");
+  check_single_token(u8"\\u0041", u8"A");
+
+  check_single_token(u8"\\u{41}", u8"A");
+  check_single_token(u8"\\u{0041}", u8"A");
+  check_single_token(u8"\\u{00000000000000000000041}", u8"A");
+
+  check_single_token(u8"hell\\u006f", u8"hello");
+  check_single_token(u8"\\u0068ello", u8"hello");
+  check_single_token(u8"w\\u0061t", u8"wat");
+
+  check_single_token(u8"\\u0077\\u0061\\u0074", u8"wat");
+  check_single_token(u8"\\u{77}\\u{61}\\u{74}", u8"wat");
+
+  // @@@ \u{0x41} not hex digits
+  // @@@ \uboob not hex digits
+  // @@@ \u}bad not hex digits
+  // @@@ \u incomplete
+  // @@@ \q not \u
+  // @@@ \u{ incomplete
+  // @@@ \u{120000} out of Unicode range
+  // @@@ \u{20} not identifier char
 }
 
 TEST(test_lex, lex_identifiers_which_look_like_keywords) {
